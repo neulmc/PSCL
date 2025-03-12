@@ -28,7 +28,7 @@ In total, 198 metallographic images of size 376 ×376 were collected in this stu
 Among them, there were 66 images with holding temperatures of 15/30 min, 60 with holding temperatures of 45/60 min, and 72 with holding temperatures of 90/120 min. 
 **This dataset is derived from production practice and is publicly available for academic exchange purposes. It cannot be used for commercial purposes**
 
-### Results on NEU-Seg Dataset
+### Results on Metallographic Dataset
 | Method                 | Dice(Mean) | Dice(Var) | ACC(Mean) | ACC(Var) | 
 |:-----------------------|:----------:|:---------:|:---------:|:--------:| 
 | Baseline               |   0.5134   |  0.0609   |  0.9167   |  0.0373  |
