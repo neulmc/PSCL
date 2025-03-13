@@ -29,7 +29,7 @@ Among them, there were 66 images with holding temperatures of 15/30 min, 60 with
 **This dataset is derived from production practice and is publicly available for academic exchange purposes. It cannot be used for commercial purposes**
 
 ### Results on Metallographic Dataset
-| Method                 | Dice(Mean) | Dice(Var) | ACC(Mean) | ACC(Var) | 
+| Method                 | Dice(Mean) | Dice(Std) | ACC(Mean) | ACC(Std) | 
 |:-----------------------|:----------:|:---------:|:---------:|:--------:| 
 | Baseline               |   0.5134   |  0.0609   |  0.9167   |  0.0373  |
 | MoCo                   |   0.5696   |  0.0683   |  0.9448   |  0.0181  | 
