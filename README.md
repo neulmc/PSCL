@@ -1,7 +1,7 @@
 # Patch-Sampled Contrastive Learning for Dense Prediction Pretraining in Metallographic Images
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch 1.7+](https://img.shields.io/badge/pytorch-1.7+-red.svg)](https://pytorch.org/)
+[![PyTorch 1.12.1+](https://img.shields.io/badge/pytorch-1.12+-red.svg)](https://pytorch.org/)
 
 This repository contains the implementation of our paper "*Patch-Sampled Contrastive Learning for Dense Prediction Pretraining in Metallographic Images*", introducing a novel self-supervised learning framework specifically designed for microstructure analysis in metallographic images.
 
@@ -14,7 +14,7 @@ This repository contains the implementation of our paper "*Patch-Sampled Contras
 
 ### Prerequisites
 - Python 3.8+
-- PyTorch 1.7+
+- PyTorch 1.12.1+
 - CUDA 11+ (for GPU acceleration)
 
 ### Quick Start
