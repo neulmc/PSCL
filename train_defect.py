@@ -53,6 +53,11 @@ if __name__ == '__main__':
 
     file_name = name + '_' + self_mode
     stage = stages.split('-')
+    # top_k: number of used annotated samples
+    if self_mode == 'moco':
+        top_k = 30
+    elif self_mode == 'simclr':
+        top_k = 4
     for stage_ in stage:
         config.self2fine(tt=name, method=stage_, env=GPU_env, RepeatID=RepeatID, mode=data_size, selfmode=self_mode,
-                         temperature=temperature, moco_denseloss_ratio=global_local_ratio, data_dir = data_dir)
+                         temperature=temperature, moco_denseloss_ratio=global_local_ratio, data_dir = data_dir, top_k = top_k)
