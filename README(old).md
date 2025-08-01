@@ -4,17 +4,20 @@ This is the source code of "Patch-sampled contrastive learning for dense predict
 ### Introduction:
 
 The shapes, sizes, and distributions of microstructures determine the mechanical properties of alloy products, necessitating identification of microstructures in metallographic images during the manufacturing process. Previous studies demonstrated the success of deep learning in analyzing such images. However, existing methods do not fully consider the high cost of annotations, which limits the application of deep learning-based methods. Considering the popularity of self-supervised learning for natural images, further research is required to design a microstructure-specific pretraining framework. To this end, we propose a novel patch-sampled contrastive learning (PSCL) method, considering the characteristics of metallographic image segmentation tasks. First, image- and patch-level contrastive learning frameworks are designed to help the model effectively capture visual features. The former captures global features, whereas the latter captures local features in greater detail. Second, a multiscale strategy is introduced to improve the adaptability of the subsequent microstructure segmentation. Finally, considering that patches may concurrently contain multiple microstructures, a sampling method based on feature similarity was designed to capture the discriminable features of different categories. In experiments, after model fine-tuning of only one annotated image, the proposed method achieved a Dice score of 0.6296 which is higher than those of existing self-supervised learning methods with identical model structure, proving the effectiveness of the method in microstructure segmentation.
+### Prerequisites
 
+- pytorch >= 1.12.1(Our code is based on the 1.12.1)
+- numpy >= 1.21.6
 
 ### Train and Evaluation
 1. Clone this repository to local.
 
 2. Download our Aluminum alloy microstructure image dataset from the link we provided https://pan.baidu.com/s/18fBqMlGDj1s3bQGm41yycg?pwd=845d.
 
-3. Extract t[requirements.txt](requirements.txt)he compressed file to the dataset folder.
+3. Extract the compressed file to the dataset folder.
 
 4. Execute the training file train.py until the termination condition is reached (By default, the pre-training and fine-tuning stages are executed sequentially).
-   (Option[requirements.txt](requirements.txt)) Adjust hyperparameters "global_local_ratio" to control the weights of image- and patch-level contrastive learning
+   (Option) Adjust hyperparameters "global_local_ratio" to control the weights of image- and patch-level contrastive learning
    (Option) Select different supervised samples to perform multiple repeated experiments by setting "multi_round" to true.
 
 During and after training, the predictions and checkpoints are saved and the "log_xxx" is constructed for recording losses and performances.
