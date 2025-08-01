@@ -1,0 +1,9 @@
+torch>=1.12.1
+numpy>=1.21.6
+matplotlib
+opencv_python
+opencv_python_headless
+Pillow
+scipy
+scikit-image
+torchvision

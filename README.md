@@ -1,32 +1,81 @@
-# Patch-sampled contrastive learning for dense prediction pretraining in metallographic images
-This is the source code of "Patch-sampled contrastive learning for dense prediction pretraining in metallographic images". 
+# Patch-Sampled Contrastive Learning for Dense Prediction Pretraining in Metallographic Images
 
-### Introduction:
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch 1.7+](https://img.shields.io/badge/pytorch-1.7+-red.svg)](https://pytorch.org/)
 
-The shapes, sizes, and distributions of microstructures determine the mechanical properties of alloy products, necessitating identification of microstructures in metallographic images during the manufacturing process. Previous studies demonstrated the success of deep learning in analyzing such images. However, existing methods do not fully consider the high cost of annotations, which limits the application of deep learning-based methods. Considering the popularity of self-supervised learning for natural images, further research is required to design a microstructure-specific pretraining framework. To this end, we propose a novel patch-sampled contrastive learning (PSCL) method, considering the characteristics of metallographic image segmentation tasks. First, image- and patch-level contrastive learning frameworks are designed to help the model effectively capture visual features. The former captures global features, whereas the latter captures local features in greater detail. Second, a multiscale strategy is introduced to improve the adaptability of the subsequent microstructure segmentation. Finally, considering that patches may concurrently contain multiple microstructures, a sampling method based on feature similarity was designed to capture the discriminable features of different categories. In experiments, after model fine-tuning of only one annotated image, the proposed method achieved a Dice score of 0.6296 which is higher than those of existing self-supervised learning methods with identical model structure, proving the effectiveness of the method in microstructure segmentation.
+This repository contains the implementation of our paper "*Patch-Sampled Contrastive Learning for Dense Prediction Pretraining in Metallographic Images*", introducing a novel self-supervised learning framework specifically designed for microstructure analysis in metallographic images.
+
+## Key Features
+- **Dual-level Contrastive Learning**: Combines image-level and patch-level contrastive learning
+- **Multi-scale Strategy**: Enhances feature learning across different scales
+- **Smart Patch Sampling**: Feature similarity-based sampling for discriminative learning
+
+## Installation
+
 ### Prerequisites
+- Python 3.8+
+- PyTorch 1.7+
+- CUDA 11.0+ (for GPU acceleration)
 
-- pytorch >= 1.12.1(Our code is based on the 1.12.1)
-- numpy >= 1.21.6
+### Quick Start
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/neulmc/PSCL.git
+   cd PSCL
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   
+### Dataset Preparation
+#### Aluminum Alloy Microstructure Dataset
+Download our dataset from Baidu Drive: https://pan.baidu.com/s/18fBqMlGDj1s3bQGm41yycg?pwd=845d. (extraction code: 845d)
 
-### Train and Evaluation
-1. Clone this repository to local.
+#### Dataset Structure:
+```
+dataset/
+    ├── aluminum/               # Metallographic dataset
+       ├── train_numf/          # Training dataset (full supervision)
+           ├── img/
+           ├── gt/
+       ├── test_numf/           # Test dataset
+           ├── img/
+           ├── gt/
+       ├── sup_num1_0/          # One supervised image (used for patch sampling)
+           ├── img/             # Randomly obtained from the training set
+           ├── gt/
+       ├── ... 
+```
+#### Important Notes:
+- 198 metallographic images (376×376 pixels)
+- Covers holding times: 15/30 min (66), 45/60 min (60), 90/120 min (72)
+- Academic Use Only - Commercial use prohibited
 
-2. Download our Aluminum alloy microstructure image dataset from the link we provided https://pan.baidu.com/s/18fBqMlGDj1s3bQGm41yycg?pwd=845d.
+### Training Pipeline
+#### 1. Self-Supervised Pretraining
+Configure parameters in config.py and run:
+```bash
+python train.py -stages self
+```
+Key configurable parameters in train.py:
+```
+self_mode = simclr          # moco: PSCL-MoCo; simclr: PSCL-SimCLR
+global_local_ratio = 0.7    # Image/patch loss ratio
+stage = self                # self: pre-training; fine: fine-tuning; sup: supervised
+```
+#### 2. Supervised Fine-Tuning
+After pretraining, run fine-tuning:
+```bash
+python train.py -stages fine
+```
+#### 3. Evaluation
+The evaluation runs automatically after fine-tuning, generating:
+- Prediction visualizations in {method_name}/1_0/epoch_xx/filename.png
+- Performance metrics in {method_name}/1_0/log_fine.txt
 
-3. Extract the compressed file to the dataset folder.
-
-4. Execute the training file train.py until the termination condition is reached (By default, the pre-training and fine-tuning stages are executed sequentially).
-   (Option) Adjust hyperparameters "global_local_ratio" to control the weights of image- and patch-level contrastive learning
-   (Option) Select different supervised samples to perform multiple repeated experiments by setting "multi_round" to true.
-
-During and after training, the predictions and checkpoints are saved and the "log_xxx" is constructed for recording losses and performances.
-
-### Dataset
-The dataset is a series of preheating-treatment microstructural images with different holding times were obtained using a metallographic microscope. 
-In total, 198 metallographic images of size 376 ×376 were collected in this study. 
-Among them, there were 66 images with holding temperatures of 15/30 min, 60 with holding temperatures of 45/60 min, and 72 with holding temperatures of 90/120 min. 
-**This dataset is derived from production practice and is publicly available for academic exchange purposes. It cannot be used for commercial purposes**
+### Reproducing Paper Results
+Our implementation supports two variants:
+- PSCL-MoCo: Momentum Contrast version
+- PSCL-SimCLR: Simple Contrastive Learning version
 
 ### Results on Metallographic Dataset
 | Method                 | Dice(Mean) | Dice(Std) | ACC(Mean) | ACC(Std) | 
@@ -39,16 +88,47 @@ Among them, there were 66 images with holding temperatures of 15/30 min, 60 with
 | PSCL-MoCo (proposed)   |   0.6284   |  0.0316   |  0.9546   |  0.0108  | 
 | PSCL-SimCLR (proposed) |   0.6296   |  0.0522   |  0.9574   |  0.0086  | 
 
-### Note
-When performing contrastive learning pre-training, 
-supervised samples in extreme cases 
-(with only one sample and imbalanced extreme categories) may affect the generality of the method. 
-Future work focuses on improving the robustness of methods
-
 ### Final models
 This is the pre-trained model and log file in our paper. We used this model for fine-turning and evaluation. You can download by:
 https://pan.baidu.com/s/19cvVEM4Bz-i4gHZrnQA5tw?pwd=bxm8 code: bxm8.
 
+### Code Structure
+```
+PSCL-github/
+├── config.py             # Configuration parameters
+├── config_run.py         # Execute code
+│   ├── Supervised         
+│   ├── SelfSupervised       
+│   └── Finetune       
+├── data.py               # Data loading and augmentation
+├── model.py              
+│   ├── PSCL_MoCo         # MoCo variant implementation
+│   └── PSCL_SimCLR       # SimCLR variant implementation
+├── networks.py           # Networks(UNet) used in model
+├── train.py              # Main training script
+├── utils                 # Utility functions
+└── requirements.txt      # Required packages
+```
+
+### Custom Dataset Training
+To train on your own dataset:
+1. Prepare images and corresponding annotations
+2. Create directory structure matching our dataset
+3. Update paths "data_dir" in config.py or train.py
+4. Run the training pipeline
+
+**Note**: This repository is designed for metallographic image segmentation tasks. The image naming convention is "ProductionBatch(aging times)-sampleID(id)-x-x". The defined dataloader will identify the aging times, IDs, and other information, and feed this information into the PSCL-MoCo queue for comparative learning. 
+If using PSCL-SimCLR, this information is not involved in model training.
+
+**Examples**: As a minimal implementation example on other datasets, 
+you can run the proposed **PSCL-SimCLR** by running python train_defect.py. 
+This dataset is a publicly available defect detection dataset (**<a href="https://ieeexplore.ieee.org/document/8930292"> NEU-Seg </a>**) used for segmentation tasks. 
+We randomly selected <a href="https://pan.baidu.com/s/1hxAv0htQYrhFoR_-NHHcSA?pwd=8uqb"> 8 images </a> as a simple demo. 
+
+This demo is implemented without changing the source code.
+For a specific and user-defined dataset, appropriate modifications are necessary. 
+For example, the number of dataset categories should be adjusted in the model.py 
+and config.py files (the current dataset has 4 microstructure categories).
 
 ### References
 [1] <a href="https://github.com/facebookresearch/moco">MoCo: Improved baselines with momentum contrastive learning.</a>
@@ -56,4 +136,8 @@ https://pan.baidu.com/s/19cvVEM4Bz-i4gHZrnQA5tw?pwd=bxm8 code: bxm8.
 [2] <a href="https://github.com/google-research/simclr">SimCLR: A simple framework for contrastive learning of visual representations.</a>
 
 [3] <a href="https://github.com/WXinlong/DenseCL">DenseCL: Dense Contrastive Learning for Self-Supervised Visual Pre-Training.</a>
+
+[4] <a href="https://github.com/cthoyt/autoreviewer"> AutoReviewer </a>
+
+[5] <a href="https://ieeexplore.ieee.org/document/8930292"> NEU-Seg dataset </a>
 

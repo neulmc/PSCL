@@ -1,37 +1,67 @@
-import matplotlib.pyplot as plt
+"""
+Data Loading and Augmentation for PSCL
+
+This file contains:
+1. Custom dataset classes for supervised and self-supervised learning
+2. Data augmentation pipelines
+3. Utility functions for one-hot encoding and image preprocessing
+"""
+
 import torch
 from torchvision import transforms
 from torch.utils import data
 import os
-from os.path import join, abspath, splitext, split, isdir, isfile
+from os.path import join
 from PIL import Image
 import numpy as np
 import cv2
 import random
 
+# Convert labels to one-hot form
 def one_hot(labels, num_classes=-1):
+    """Convert label map to one-hot encoded tensor"""
     if num_classes == -1:
         num_classes = int(labels.max()) + 1
     one_hot_tensor = torch.zeros(labels.size() + (num_classes,), dtype=torch.int64)
     one_hot_tensor.scatter_(-1, labels.unsqueeze(-1).to(torch.int64), 1)
     return one_hot_tensor
 
+# Convert labels to one-hot form for segmentation networks
 def get_one_hot(labels, num_classes=-1):
-    """用于分割网络的one hot"""
+    """One-hot encoding for segmentation networks
+
+    Args:
+        labels: Input label map
+        num_classes: Number of classes
+
+    Returns:
+        One-hot encoded tensor with shape (*labels.shape, num_classes)
+    """
     labels = torch.as_tensor(labels)
     ones = one_hot(labels, num_classes)
     return ones.view(*labels.size(), num_classes)
 
+# Preprocess image for CV2 compatibility
+# In fact, the image here is a grayscale image, so this function is not very necessary
 def prepare_image_cv2(im):
+    """Preprocess image for CV2 compatibility
+    1. Subtract mean values
+    2. Transpose dimensions to (C x H x W)
+    """
     im -= np.array((104.00698793,116.66876762,122.67891434))
     im = np.transpose(im, (2, 0, 1)) # (H x W x C) to (C x H x W)
     return im
 
+# Supervised Dataset Loader for Aluminum Segmentation
+# It is used for fineturning and supervision.
 class Data_preheat(data.Dataset):
+    """Supervised Dataset Loader for Aluminum Segmentation
+    Features:
+    - Train/test split handling
+    - Different augmentation for train vs test
+    - One-hot encoding of labels
+    - Random rotations and flips
     """
-    Dataloader BSDS500
-    """
-
     def __init__(self, root='../dataset/cast/split_images', split = 'train'):  # fuz: use fuz, fuz add: use fuz label
         self.split = split
         if split == 'train':
@@ -61,7 +91,7 @@ class Data_preheat(data.Dataset):
     def __getitem__(self, index):
         if self.split == 'train':
             img_file = self.filelist[index]
-            gt = cv2.imread(join(self.root.replace('/img', '/gt'), img_file), 0)
+            gt = cv2.imread(join(self.root.replace('/img', '/gt'), img_file.replace('.jpg','.png')), 0)
             #gt[gt == 255] = 1
             #gt = torch.tensor(gt)#.unsqueeze(0)
             gt_new = get_one_hot(gt, num_classes=4)
@@ -86,7 +116,7 @@ class Data_preheat(data.Dataset):
             return img1, gt_new
         else:
             img_file = self.filelist[index]
-            gt = cv2.imread(join(self.root.replace('/img', '/gt'), img_file), 0)
+            gt = cv2.imread(join(self.root.replace('/img', '/gt'), img_file.replace('.jpg','.png')), 0)
             gt_new = get_one_hot(gt, num_classes=4)
             gt_new = gt_new.permute(2, 0, 1).float()
             image = Image.open(join(self.root, img_file)).convert('RGB')
@@ -94,14 +124,30 @@ class Data_preheat(data.Dataset):
             img1 = self.transform(image)
             return img1, gt_new, img_file.split('/')[-1]
 
+# Dataset Loader used in pre-training Learning
+# During the training process, "MoCoData_preheat" here and "MoCoData_preheat_sup" below
+# are used at the same time.
 class MoCoData_preheat(data.Dataset):
-    """
-    Dataloader BSDS500
+    """Dataset Loader for Self-Supervised Learning
+
+    Features:
+    - Two augmented views of each image
+    - Random crops and color jitter
+    - Consistent ID tracking for contrastive learning
     """
 
     def __init__(self, root='dataset/cast/split_images', jitter_d = 0.2, jitter_p = 0.8, grey_p = 0.2, random_c = 0.1,
                  crop_dim = 376, two_crop = True):  # fuz: use fuz, fuz add: use fuz label
-
+        """Initialize MoCo dataset
+        Args:
+            root: Dataset root path
+            jitter_d: Color jitter intensity
+            jitter_p: Color jitter probability
+            grey_p: Grayscale probability
+            random_c: Random crop ratio
+            crop_dim: Crop dimension
+            two_crop: Whether to generate two crops
+        """
         color_jitter = transforms.ColorJitter(0.8 * jitter_d, 0.8 * jitter_d, 0.8 * jitter_d, 0.2 * jitter_d)
         rnd_color_jitter = transforms.RandomApply([color_jitter], p=jitter_p)
         rnd_grey = transforms.RandomGrayscale(p=grey_p)
@@ -125,6 +171,12 @@ class MoCoData_preheat(data.Dataset):
         return len(self.filelist)
 
     def __getitem__(self, index):
+        """Get two augmented views for contrastive learning
+        Returns:
+            Concatenated augmented views
+            Image ID for memory bank
+            Augmentation parameters (rotation, flip, crop coords)
+        """
         img_file = self.filelist[index]
         name = img_file.split('_')
         id = name[0] + '_' + name[1]
@@ -151,11 +203,12 @@ class MoCoData_preheat(data.Dataset):
         img12 = torch.cat([img1, img2], dim=0)
         return img12, id, rot_k, filp, r1, r2, r3, r4
 
+# Dataset Loader used in pre-training Learning.
+# It is used to obtain supervised samples and to implement sampling of unlabeled patches.
+# Patch sampling is the main difference between us and conventional pre-training methods.
 class MoCoData_preheat_sup(data.Dataset):
+    """Initialize dataset
     """
-    Dataloader BSDS500
-    """
-
     def __init__(self, root='dataset/cast/split_images', jitter_d = 0.2, jitter_p = 0.8, grey_p = 0.2, random_c = 0.1,
                  crop_dim = 376, two_crop = True):  # fuz: use fuz, fuz add: use fuz label
         color_jitter = transforms.ColorJitter(0.8 * jitter_d, 0.8 * jitter_d, 0.8 * jitter_d, 0.2 * jitter_d)
@@ -177,9 +230,15 @@ class MoCoData_preheat_sup(data.Dataset):
         return len(self.filelist)
 
     def __getitem__(self, index):
+        """Get two augmented views for contrastive learning
+        Returns:
+            Concatenated augmented views (with annotations)
+            Image ID for memory bank
+            Augmentation parameters (rotation, flip, crop coords)
+        """
         img_file = self.filelist[index]
         name = img_file.split('_')
-        gt = cv2.imread(join(self.root.replace('/img', '/gt'), img_file), 0)
+        gt = cv2.imread(join(self.root.replace('/img', '/gt'), img_file.replace('.jpg','.png')), 0)
         gt_new = get_one_hot(gt, num_classes=4) * 255
         gt_new = gt_new.permute(2, 0, 1).float()
         id = name[0] + '_' + name[1]

@@ -14,17 +14,17 @@ Usage:
 import config
 import argparse
 
-name = 'PSCL-al'
-data_dir = 'dataset/aluminum/'
+name = 'PSCL-defect-demo'
+data_dir = 'dataset/NEU_Seg-demo/'
 stages = 'self-fine'
 # stage: 'self-fine' means running pre-training and fine-tuning in turn
 # (self): pre-training;
 # (fine): fine-tuning
 # (sup): without pre-training
-self_mode = 'moco'
+self_mode = 'simclr'
 # self_mode
 # moco: PSCL-MoCo; simclr: PSCL-SimCLR
-data_size = '1'
+data_size = 'f'
 # data_size:
 # 1(only one supervised image);
 # 5(five supervised images)
