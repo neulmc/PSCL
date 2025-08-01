@@ -15,7 +15,7 @@ This repository contains the implementation of our paper "*Patch-Sampled Contras
 ### Prerequisites
 - Python 3.8+
 - PyTorch 1.7+
-- CUDA 11.0+ (for GPU acceleration)
+- CUDA 11+ (for GPU acceleration)
 
 ### Quick Start
 1. Clone the repository:
